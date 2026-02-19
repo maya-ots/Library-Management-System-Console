@@ -81,7 +81,7 @@ The goal of this project is to practice core Dart programming concepts such as O
 
 `git clone <repo-link>`
 
-`cd library_system`
+`cd MY_PROJECT`
 
 3️) Run the Application
 
