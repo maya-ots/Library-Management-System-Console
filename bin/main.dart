@@ -182,7 +182,11 @@ void isolateSearch(SendPort sendPort) {
     final String keyword = msg["keyword"];
     final SendPort? reply = msg['reply'] as SendPort?;
 
-    final results = books.where((b) => b["title"].contains(keyword)).toList();
+    final q = keyword.trim().toLowerCase();
+    final results = books.where((b) =>
+    (b["title"] as String).toLowerCase().contains(q)
+    ).toList();
+    
     if (reply != null) {
       reply.send(results);
     } else {
