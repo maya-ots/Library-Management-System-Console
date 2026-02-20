@@ -178,11 +178,16 @@ void isolateSearch(SendPort sendPort) {
   sendPort.send(port.sendPort);
 
   port.listen((msg) {
-    final List<Map<String, dynamic>> books = msg["books"];
+    final List<Map<String, dynamic>> books = List<Map<String, dynamic>>.from(msg["books"]);
     final String keyword = msg["keyword"];
+    final SendPort? reply = msg['reply'] as SendPort?;
 
     final results = books.where((b) => b["title"].contains(keyword)).toList();
-    sendPort.send(results);
+    if (reply != null) {
+      reply.send(results);
+    } else {
+      sendPort.send(results);
+    }
   });
 }
 
@@ -266,6 +271,7 @@ Future<void> main() async {
   // Isolate setup
 
   final receivePort = ReceivePort();
+ 
   await Isolate.spawn(isolateSearch, receivePort.sendPort);
   final isolatePort = await receivePort.first as SendPort;
   
@@ -338,11 +344,17 @@ Choose option:
       } else if (choice == "2") {
         print("Keyword:");
         final kw = stdin.readLineSync()!;
+
+        final replyPort = ReceivePort();
         isolatePort.send({
           "books": manager.books.values.map((b) => b.toMap()).toList(),
-          "keyword": kw
+          "keyword": kw,
+          "reply": replyPort.sendPort,
         });
-        final result = await receivePort.first;
+
+        final result = await replyPort.first;
+        replyPort.close();
+
         print("\n--- Search Results ---");
         for (var b in result) {
           print("${b["title"]} by ${b["author"]}");
